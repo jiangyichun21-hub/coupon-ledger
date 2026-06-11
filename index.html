@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刷券代拍记账本</title>
+<style>
+  :root {
+    --primary: #5b9bd5;
+    --primary-light: #e8f1fa;
+    --accent: #6cc4a1;
+    --accent-light: #e6f7f0;
+    --bg: #f7f9fc;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --text-secondary: #7f8c9b;
+    --border: #e4e8ee;
+    --danger: #e74c3c;
+    --profit-positive: #27ae60;
+    --profit-negative: #e74c3c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  h1 span { color: var(--primary); }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .summary-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .summary-card .label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .summary-card .value {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .summary-card.profit .value { color: var(--profit-positive); }
+  .summary-card.cps .value { color: var(--primary); }
+  .summary-card.orders .value { color: var(--accent); }
+  .val-neutral { color: var(--text) !important; }
+  .val-gain { color: var(--profit-positive) !important; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    background: var(--card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .filter-bar label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .filter-bar select, .filter-bar input[type="date"], .filter-bar input[type="text"] {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+  }
+  .filter-bar select:focus, .filter-bar input[type="date"]:focus, .filter-bar input[type="text"]:focus {
+    border-color: var(--primary);
+  }
+  .filter-reset {
+    font-size: 12px;
+    color: var(--primary);
+    cursor: pointer;
+    text-decoration: underline;
+    margin-left: auto;
+  }
+
+  .table-card {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .table-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .table-header h2 {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .update-info {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .table-wrapper { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--bg);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  .profit-cell { font-weight: 700; }
+  .profit-positive { color: var(--profit-positive); }
+  .profit-negative { color: var(--profit-negative); }
+  .platform-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .platform-taobao { background: #fff3e0; color: #e65100; }
+  .platform-jd { background: #e3f2fd; color: #1565c0; }
+  .platform-pdd { background: #fce4ec; color: #c62828; }
+  .platform-other { background: #f3e5f5; color: #6a1b9a; }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  @media (max-width: 700px) {
+    .summary { grid-template-columns: repeat(3, 1fr); }
+    .summary-card .value { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><span>刷券代拍</span> 记账本</h1>
+
+  <div class="summary">
+    <div class="summary-card">
+      <div class="label">总买入成本</div>
+      <div class="value val-neutral" id="totalCost">¥0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">总卖价收入</div>
+      <div class="value val-neutral" id="totalRevenue">¥0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">总手续费</div>
+      <div class="value val-neutral" id="totalFee">¥0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">总返现</div>
+      <div class="value val-gain" id="totalCps">¥0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">总利润（不含返现）</div>
+      <div class="value val-gain" id="profitNoCps">¥0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">总利润（含返现）</div>
+      <div class="value val-gain" id="totalProfit">¥0</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <input type="text" id="filterKeyword" placeholder="搜索商品名称" oninput="render()">
+    <label>平台</label>
+    <select id="filterPlatform" onchange="render()">
+      <option value="">全部</option>
+    </select>
+    <label>日期从</label>
+    <input type="date" id="filterDateFrom" onchange="render()">
+    <label>到</label>
+    <input type="date" id="filterDateTo" onchange="render()">
+    <span class="filter-reset" onclick="resetFilter()">重置筛选</span>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <h2>交易记录 <span id="recordCount" style="font-size:13px;font-weight:400;color:var(--text-secondary)"></span></h2>
+      <span class="update-info" id="updateTime"></span>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>商品</th>
+            <th>平台</th>
+            <th>买入价</th>
+            <th>卖出价</th>
+            <th>手续费</th>
+            <th>CPS返现</th>
+            <th>净利润</th>
+            <th>购买订单号</th>
+            <th>闲鱼订单号</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState">还没有记录</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== DATA_START ==========
+const RECORDS = [
+{"date": "2026-06-11", "name": "敷尔佳方胖子湿敷棉积雪草", "platform": "137淘宝", "buyPrice": 36.14, "sellPrice": 42.0, "fee": 0.25, "cps": 5.72, "buyOrderNo": "3307920420284009674", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-11", "name": "敷尔佳方胖子湿敷棉积雪草", "platform": "137淘宝", "buyPrice": 32.18, "sellPrice": 42.0, "fee": 0.25, "cps": 4.54, "buyOrderNo": "3307708057498018053", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-11", "name": "敷尔佳三文鱼灌肤面膜4盒", "platform": "137淘宝", "buyPrice": 143.56, "sellPrice": 200.0, "fee": 1.2, "cps": 21.2, "buyOrderNo": "3307531153383009674", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-11", "name": "敷尔佳方胖子湿敷棉 蓝色", "platform": "137淘宝", "buyPrice": 33.75, "sellPrice": 42.0, "fee": 0.25, "cps": 4.48, "buyOrderNo": "3307542709856081694", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-11", "name": "敷尔佳祛痘精华次抛", "platform": "137淘宝", "buyPrice": 45.64, "sellPrice": 55.0, "fee": 0.33, "cps": 6.64, "buyOrderNo": "3307037595705264096", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-11", "name": "敷尔佳方胖子绿胖子湿敷棉", "platform": "137淘宝", "buyPrice": 23.68, "sellPrice": 42.0, "fee": 0.25, "cps": 3.96, "buyOrderNo": "3307037595705054866", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-11", "name": "敷尔佳方胖子绿胖子湿敷棉", "platform": "137淘宝", "buyPrice": 28.28, "sellPrice": 42.0, "fee": 0.25, "cps": 4.34, "buyOrderNo": "3307037595705228086", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-11", "name": "敷尔佳方胖子蓝胖子湿敷棉", "platform": "137淘宝", "buyPrice": 35.18, "sellPrice": 42.0, "fee": 0.25, "cps": 4.48, "buyOrderNo": "3307086446835009674", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-10", "name": "敷尔佳积雪草舒缓方胖子湿敷膜保湿修护降温泛红敏", "platform": "137淘宝", "buyPrice": 37.04, "sellPrice": 42.0, "fee": 0.25, "cps": 4.91, "buyOrderNo": "3307459153904045684", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-10", "name": "敷尔佳积雪草舒缓方胖子湿敷膜保湿修护降温泛红敏", "platform": "137淘宝", "buyPrice": 37.04, "sellPrice": 42.0, "fee": 0.25, "cps": 4.91, "buyOrderNo": "3306982803297045684", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-10", "name": "敷尔佳烟酰胺美白淡斑面膜补水美白褪黄暗沉提亮4盒", "platform": "137淘宝", "buyPrice": 105.56, "sellPrice": 120.0, "fee": 0.72, "cps": 20.46, "buyOrderNo": "3307021574363081694", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-10", "name": "敷尔佳PDRN三文鱼水光灌肤次抛精华液30支", "platform": "137淘宝", "buyPrice": 81.48, "sellPrice": 92.0, "fee": 0.55, "cps": 12.18, "buyOrderNo": "3307434961569009674", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-10", "name": "敷尔佳祛痘净颜湿敷膜面精华棉片妆前补水官方", "platform": "137淘宝", "buyPrice": 35.18, "sellPrice": 42.0, "fee": 0.25, "cps": 5.21, "buyOrderNo": "3307239013825081694", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-10", "name": "敷尔佳祛痘净颜湿敷膜面精华棉片妆前补水官方", "platform": "137淘宝", "buyPrice": 30.32, "sellPrice": 42.0, "fee": 0.25, "cps": 4.78, "buyOrderNo": "3307427904333018856", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-10", "name": "敷尔佳PDRN三文鱼水光灌肤次抛精华液30支", "platform": "137淘宝", "buyPrice": 69.69, "sellPrice": 92.0, "fee": 0.55, "cps": 11.17, "buyOrderNo": "3306797690414009674", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-10", "name": "敷尔佳积雪草舒缓方胖子湿敷膜保湿修护降温泛红敏", "platform": "137淘宝", "buyPrice": 36.01, "sellPrice": 42.0, "fee": 0.25, "cps": 3.14, "buyOrderNo": "3306768099356009674", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳PDRN三文鱼水光灌肤面膜补水紧致", "platform": "198淘宝", "buyPrice": 36.16, "sellPrice": 50.0, "fee": 0.3, "cps": 5.59, "buyOrderNo": "3306734294843008871", "sellOrderNo": "5119310054315010612", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳乳糖酸控油敛肤次抛精华补水祛痘收缩毛孔官方", "platform": "198淘宝", "buyPrice": 40.09, "sellPrice": 55.0, "fee": 0.33, "cps": 0.0, "buyOrderNo": "3306734294843054063", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳亮肤臻白面膜美白去黄气暗沉淡斑提亮紧致1盒", "platform": "198淘宝", "buyPrice": 23.35, "sellPrice": 35.0, "fee": 0.21, "cps": 8.47, "buyOrderNo": "3306734294843109254", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳清痘次抛精华面部温和祛痘净肤控油淡红印官方正品", "platform": "197淘宝", "buyPrice": 36.71, "sellPrice": 55.0, "fee": 0.33, "cps": 6.21, "buyOrderNo": "3307234441511405876", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳湿敷膜酵能水盈醒肤紧致上妆前湿敷棉片精华补水", "platform": "197淘宝", "buyPrice": 23.75, "sellPrice": 42.0, "fee": 0.25, "cps": 3.97, "buyOrderNo": "3307234441511451068", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳清痘净肤修护次抛精华2.0祛痘淡红控油官方正品", "platform": "197淘宝", "buyPrice": 37.33, "sellPrice": 55.0, "fee": 0.33, "cps": 9.9, "buyOrderNo": "3306750063661005062", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳亮肤臻白面膜美白去黄气暗沉淡斑提亮紧致1盒", "platform": "197淘宝", "buyPrice": 32.03, "sellPrice": 35.0, "fee": 0.21, "cps": 5.16, "buyOrderNo": "3306750063661050254", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳乳糖酸控油湿敷膜棉片面膜收缩毛孔官方", "platform": "197淘宝", "buyPrice": 26.22, "sellPrice": 40.0, "fee": 0.24, "cps": 4.02, "buyOrderNo": "3306750063661123091", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳清痘净肤修护次抛精华2.0祛痘淡红控油官方正品", "platform": "137淘宝", "buyPrice": 41.3, "sellPrice": 55.0, "fee": 0.33, "cps": 8.84, "buyOrderNo": "3306778502774045684", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳乳糖酸控油敛肤次抛精华补水祛痘收缩毛孔官方", "platform": "137淘宝", "buyPrice": 51.85, "sellPrice": 55.0, "fee": 0.31, "cps": 11.29, "buyOrderNo": "3306778502774090876", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-09", "name": "敷尔佳积雪草舒缓方胖子湿敷膜保湿修护降温泛红敏", "platform": "137淘宝", "buyPrice": 37.65, "sellPrice": 42.0, "fee": 0.25, "cps": 4.76, "buyOrderNo": "3306765687282009674", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-08", "name": "肌肤之钥CPB长管隔离光凝润采妆前霜底妆自然", "platform": "198淘宝", "buyPrice": 533.12, "sellPrice": 625.0, "fee": 3.75, "cps": 9.92, "buyOrderNo": "3307095264683035699", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-07", "name": "肌肤之钥CPB长管隔离光凝润采妆前霜自然底妆细腻", "platform": "137淘宝", "buyPrice": 545.94, "sellPrice": 620.0, "fee": 3.72, "cps": 5.58, "buyOrderNo": "3307048104895045684", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-06", "name": "敷尔佳乳糖酸控油敛肤次抛精华补水祛痘收缩毛孔官方", "platform": "137淘宝", "buyPrice": 44.9, "sellPrice": 50.0, "fee": 0.3, "cps": 0.0, "buyOrderNo": "3306318243058172895", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-05", "name": "CPB肌肤之钥净采洁面膏双支洗面奶清爽湿润", "platform": "137淘宝", "buyPrice": 447.99, "sellPrice": 530.0, "fee": 3.18, "cps": 9.18, "buyOrderNo": "3306216039216100058", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-03", "name": "肌肤之钥CPB长管隔离光凝润采妆前霜底妆自然细腻", "platform": "198淘宝", "buyPrice": 539.0, "sellPrice": 615.0, "fee": 3.69, "cps": 0.0, "buyOrderNo": "3305858955692018053", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-03", "name": "肌肤之钥CPB长管隔离光凝润采妆前霜底妆自然细腻", "platform": "197淘宝", "buyPrice": 596.95, "sellPrice": 632.0, "fee": 3.79, "cps": 0.0, "buyOrderNo": "3305871807968031890", "sellOrderNo": "", "note": ""},
+{"date": "2026-06-03", "name": "肌肤之钥CPB长管隔离光凝润采妆前霜底妆自然细腻", "platform": "137淘宝", "buyPrice": 553.8, "sellPrice": 620.0, "fee": 3.72, "cps": 0.0, "buyOrderNo": "3305905106373054866", "sellOrderNo": "", "note": ""},
+{"date": "2026-05-31", "name": "NARS定妆大白饼粉饼蜜粉不卡粉持久轻透星河白饼", "platform": "198淘宝", "buyPrice": 232.43, "sellPrice": 230.0, "fee": 1.38, "cps": 19.74, "buyOrderNo": "3305211963568035699", "sellOrderNo": "", "note": ""},
+{"date": "2026-05-31", "name": "NARS定妆大白饼粉饼蜜粉不卡粉持久轻透星河白饼", "platform": "137淘宝", "buyPrice": 232.33, "sellPrice": 230.0, "fee": 1.38, "cps": 19.74, "buyOrderNo": "3305261210472045684", "sellOrderNo": "", "note": ""}
+];
+const UPDATED_AT = "2026-06-11 20:58";
+// ========== DATA_END ==========
+
+function getPlatformClass(p) {
+  if (p.includes('淘宝')) return 'platform-taobao';
+  if (p.includes('京东')) return 'platform-jd';
+  if (p.includes('拼多多')) return 'platform-pdd';
+  return 'platform-other';
+}
+
+function getFiltered() {
+  const kw = document.getElementById('filterKeyword').value.trim().toLowerCase();
+  const pf = document.getElementById('filterPlatform').value;
+  const df = document.getElementById('filterDateFrom').value;
+  const dt = document.getElementById('filterDateTo').value;
+  return RECORDS.filter(r => {
+    if (kw && !r.name.toLowerCase().includes(kw)) return false;
+    if (pf && r.platform !== pf) return false;
+    if (df && r.date < df) return false;
+    if (dt && r.date > dt) return false;
+    return true;
+  });
+}
+
+function resetFilter() {
+  document.getElementById('filterKeyword').value = '';
+  document.getElementById('filterPlatform').value = '';
+  document.getElementById('filterDateFrom').value = '';
+  document.getElementById('filterDateTo').value = '';
+  render();
+}
+
+// Populate platform filter options
+(function() {
+  const platforms = [...new Set(RECORDS.map(r => r.platform))].sort();
+  const sel = document.getElementById('filterPlatform');
+  platforms.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = p;
+    sel.appendChild(opt);
+  });
+})();
+
+function render() {
+  const filtered = getFiltered();
+  const totalCost = filtered.reduce((s, r) => s + r.buyPrice, 0);
+  const totalRevenue = filtered.reduce((s, r) => s + r.sellPrice, 0);
+  const totalFee = filtered.reduce((s, r) => s + (r.fee || 0), 0);
+  const totalCps = filtered.reduce((s, r) => s + (r.cps || 0), 0);
+  const totalProfit = filtered.reduce((s, r) => s + (r.sellPrice - r.buyPrice + (r.cps || 0) - (r.fee || 0)), 0);
+  const profitNoCps = totalProfit - totalCps;
+
+  document.getElementById('totalCost').textContent = '¥' + totalCost.toFixed(2);
+  document.getElementById('totalRevenue').textContent = '¥' + totalRevenue.toFixed(2);
+  document.getElementById('totalFee').textContent = '¥' + totalFee.toFixed(2);
+  document.getElementById('totalCps').textContent = '¥' + totalCps.toFixed(2);
+
+  const profitEl = document.getElementById('totalProfit');
+  profitEl.textContent = (totalProfit >= 0 ? '¥' : '-¥') + Math.abs(totalProfit).toFixed(2);
+  profitEl.style.color = totalProfit < 0 ? 'var(--profit-negative)' : '';
+
+  const pncEl = document.getElementById('profitNoCps');
+  pncEl.textContent = (profitNoCps >= 0 ? '¥' : '-¥') + Math.abs(profitNoCps).toFixed(2);
+  pncEl.style.color = profitNoCps < 0 ? 'var(--profit-negative)' : '';
+
+  if (UPDATED_AT) {
+    document.getElementById('updateTime').textContent = '更新于 ' + UPDATED_AT;
+  }
+
+  document.getElementById('recordCount').textContent = '共 ' + filtered.length + ' 笔';
+
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+  if (filtered.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(r => {
+    const profit = r.sellPrice - r.buyPrice + (r.cps || 0) - (r.fee || 0);
+    const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
+    const profitSign = profit >= 0 ? '+' : '';
+    return `<tr>
+      <td>${r.date}</td>
+      <td>${r.name}</td>
+      <td><span class="platform-tag ${getPlatformClass(r.platform)}">${r.platform}</span></td>
+      <td>¥${r.buyPrice.toFixed(2)}</td>
+      <td>¥${r.sellPrice.toFixed(2)}</td>
+      <td>¥${(r.fee || 0).toFixed(2)}</td>
+      <td>¥${(r.cps || 0).toFixed(2)}</td>
+      <td class="profit-cell ${profitClass}">${profitSign}¥${Math.abs(profit).toFixed(2)}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${r.buyOrderNo || '-'}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${r.sellOrderNo || '-'}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${r.note || '-'}</td>
+    </tr>`;
+  }).join('');
+}
+
+render();
+</script>
+</body>
+</html>
