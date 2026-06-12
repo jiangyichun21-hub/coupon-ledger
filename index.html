@@ -238,6 +238,7 @@
             <th>净利润</th>
             <th>购买订单号</th>
             <th>闲鱼订单号</th>
+            <th>闲鱼购买者</th>
             <th>备注</th>
           </tr>
         </thead>
@@ -383,6 +384,7 @@ function render() {
       <td class="profit-cell ${profitClass}">${profitSign}¥${Math.abs(profit).toFixed(2)}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.buyOrderNo || '-'}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.sellOrderNo || '-'}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${r.buyer || '-'}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.note || '-'}</td>
     </tr>`;
   }).join('');
