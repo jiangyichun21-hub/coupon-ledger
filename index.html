@@ -239,6 +239,7 @@
             <th>净利润</th>
             <th>购买订单号</th>
             <th>闲鱼订单号</th>
+            <th>已发货</th>
             <th>备注</th>
           </tr>
         </thead>
@@ -399,6 +400,7 @@ function render() {
       <td class="profit-cell ${profitClass}">${profitSign}¥${Math.abs(profit).toFixed(2)}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.buyOrderNo || '-'}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.sellOrderNo || '-'}</td>
+      <td style="font-size:12px">${r.shipped === true ? '<span style="color:var(--profit-positive)">是</span>' : r.shipped === false ? '<span style="color:var(--profit-negative)">否</span>' : '-'}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.note || '-'}</td>
     </tr>`;
   }).join('');
