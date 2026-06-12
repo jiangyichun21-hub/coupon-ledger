@@ -228,7 +228,7 @@
       <table>
         <thead>
           <tr>
-            <th>日期</th>
+            <th>时间</th>
             <th>商品</th>
             <th>已发货</th>
             <th>闲鱼购买者</th>
@@ -253,6 +253,10 @@
 <script>
 // ========== DATA_START ==========
 const RECORDS = [
+{"date": "2026-06-12", "name": "敷尔佳清痘面膜4盒", "platform": "137淘宝", "buyPrice": 101.04, "sellPrice": 148.0, "fee": 0.89, "cps": 18.04, "buyOrderNo": "3307867069513009674", "sellOrderNo": "", "buyer": "三百斤的橘猫", "note": ""},
+{"date": "2026-06-12", "name": "敷尔佳祛痘冰沙霜", "platform": "137淘宝", "buyPrice": 57.38, "sellPrice": 60.0, "fee": 0.36, "cps": 7.77, "buyOrderNo": "3307835317001090876", "sellOrderNo": "", "buyer": "自动收货直接拉黑", "note": ""},
+{"date": "2026-06-12", "name": "敷尔佳方胖子湿敷棉蓝色", "platform": "137淘宝", "buyPrice": 35.18, "sellPrice": 42.0, "fee": 0.25, "cps": 5.21, "buyOrderNo": "3307370343430009674", "sellOrderNo": "", "buyer": "X***5", "note": ""},
+{"date": "2026-06-12", "name": "敷尔佳方胖子湿敷棉 积雪草", "platform": "137淘宝", "buyPrice": 37.04, "sellPrice": 42.0, "fee": 0.25, "cps": 4.91, "buyOrderNo": "3307365735729009674", "sellOrderNo": "", "buyer": "北冰洋开怀大笑", "note": ""},
 {"date": "2026-06-12", "name": "敷尔佳方胖子湿敷棉灰色", "platform": "137淘宝", "buyPrice": 30.76, "sellPrice": 42.0, "fee": 0.25, "cps": 4.13, "buyOrderNo": "3307990728669009674", "sellOrderNo": "", "buyer": "黄牛胡-收货永动机", "note": "对方还没下单"},
 {"date": "2026-06-12", "name": "敷尔佳乳糖酸次抛", "platform": "137淘宝", "buyPrice": 50.56, "sellPrice": 60.0, "fee": 0.36, "cps": 1.1, "buyOrderNo": "3307990728669090876", "sellOrderNo": "", "buyer": "穿越收货者", "note": ""},
 {"date": "2026-06-12", "name": "可复美次抛100支6盒水膜", "platform": "137淘宝", "buyPrice": 472.77, "sellPrice": 390.0, "fee": 2.34, "cps": 112.2, "buyOrderNo": "3307990728669081694", "sellOrderNo": "", "buyer": "唐朝善良的生菜", "note": ""},
@@ -306,7 +310,7 @@ const RECORDS = [
 {"date": "2026-05-31", "name": "NARS定妆大白饼粉饼蜜粉不卡粉持久轻透星河白饼", "platform": "198淘宝", "buyPrice": 232.43, "sellPrice": 230.0, "fee": 1.38, "cps": 19.74, "buyOrderNo": "3305211963568035699", "sellOrderNo": "", "note": "", "shipped": true},
 {"date": "2026-05-31", "name": "NARS定妆大白饼粉饼蜜粉不卡粉持久轻透星河白饼", "platform": "137淘宝", "buyPrice": 232.33, "sellPrice": 230.0, "fee": 1.38, "cps": 19.74, "buyOrderNo": "3305261210472045684", "sellOrderNo": "", "note": ""}
 ];
-const UPDATED_AT = "2026-06-12 16:00";
+const UPDATED_AT = "2026-06-12 21:39";
 // ========== DATA_END ==========
 
 function getPlatformClass(p) {
@@ -324,8 +328,8 @@ function getFiltered() {
   return RECORDS.filter(r => {
     if (kw && !r.name.toLowerCase().includes(kw) && !(r.buyer || '').toLowerCase().includes(kw)) return false;
     if (pf && r.platform !== pf) return false;
-    if (df && r.date < df) return false;
-    if (dt && r.date > dt) return false;
+    if (df && r.date.substring(0,10) < df) return false;
+    if (dt && r.date.substring(0,10) > dt) return false;
     return true;
   });
 }
