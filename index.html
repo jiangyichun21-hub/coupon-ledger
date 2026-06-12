@@ -207,7 +207,15 @@
   </div>
 
   <div class="filter-bar">
-    <input type="text" id="filterKeyword" placeholder="搜索商品/购买者" oninput="render()">
+    <input type="text" id="filterName" placeholder="搜索商品" oninput="render()">
+    <input type="text" id="filterBuyer" placeholder="搜索购买者" oninput="render()">
+    <input type="text" id="filterOrderNo" placeholder="订单号" oninput="render()">
+    <label>发货</label>
+    <select id="filterShipped" onchange="render()">
+      <option value="">全部</option>
+      <option value="yes">已发货</option>
+      <option value="no">未发货</option>
+    </select>
     <label>平台</label>
     <select id="filterPlatform" onchange="render()">
       <option value="">全部</option>
@@ -327,12 +335,19 @@ function getPlatformClass(p) {
 }
 
 function getFiltered() {
-  const kw = document.getElementById('filterKeyword').value.trim().toLowerCase();
+  const nameKw = document.getElementById('filterName').value.trim().toLowerCase();
+  const buyerKw = document.getElementById('filterBuyer').value.trim().toLowerCase();
+  const orderNo = document.getElementById('filterOrderNo').value.trim();
+  const shipped = document.getElementById('filterShipped').value;
   const pf = document.getElementById('filterPlatform').value;
   const df = document.getElementById('filterDateFrom').value;
   const dt = document.getElementById('filterDateTo').value;
   return RECORDS.filter(r => {
-    if (kw && !r.name.toLowerCase().includes(kw) && !(r.buyer || '').toLowerCase().includes(kw)) return false;
+    if (nameKw && !r.name.toLowerCase().includes(nameKw)) return false;
+    if (buyerKw && !(r.buyer || '').toLowerCase().includes(buyerKw)) return false;
+    if (orderNo && r.buyOrderNo !== orderNo && r.sellOrderNo !== orderNo) return false;
+    if (shipped === 'yes' && r.shipped !== true) return false;
+    if (shipped === 'no' && r.shipped !== false) return false;
     if (pf && r.platform !== pf) return false;
     if (df && r.date.substring(0,10) < df) return false;
     if (dt && r.date.substring(0,10) > dt) return false;
@@ -341,7 +356,10 @@ function getFiltered() {
 }
 
 function resetFilter() {
-  document.getElementById('filterKeyword').value = '';
+  document.getElementById('filterName').value = '';
+  document.getElementById('filterBuyer').value = '';
+  document.getElementById('filterOrderNo').value = '';
+  document.getElementById('filterShipped').value = '';
   document.getElementById('filterPlatform').value = '';
   document.getElementById('filterDateFrom').value = '';
   document.getElementById('filterDateTo').value = '';
