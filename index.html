@@ -128,7 +128,7 @@
   }
   .table-wrapper { overflow-x: auto; }
   table {
-    width: 100%;
+    min-width: 1200px;
     border-collapse: collapse;
     font-size: 13px;
   }
@@ -146,6 +146,31 @@
     padding: 10px 12px;
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* Sticky columns: time (1st) and product name (2nd) */
+  thead th:nth-child(1), thead th:nth-child(2),
+  tbody td:nth-child(1), tbody td:nth-child(2) {
+    position: sticky;
+    z-index: 1;
+  }
+  thead th:nth-child(1), tbody td:nth-child(1) {
+    left: 0;
+    min-width: 150px;
+    background: var(--card);
+  }
+  thead th:nth-child(2), tbody td:nth-child(2) {
+    left: 174px;
+    min-width: 160px;
+    max-width: 200px;
+    white-space: normal;
+    word-break: break-all;
+    background: var(--card);
+  }
+  thead th:nth-child(1), thead th:nth-child(2) {
+    background: var(--bg);
+    z-index: 2;
   }
   tbody tr:last-child td { border-bottom: none; }
   .profit-cell { font-weight: 700; }
