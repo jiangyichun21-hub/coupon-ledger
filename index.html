@@ -42,7 +42,7 @@
 
   .summary {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-bottom: 24px;
   }
@@ -205,7 +205,7 @@
   }
 
   @media (max-width: 700px) {
-    .summary { grid-template-columns: repeat(3, 1fr); }
+    .summary { grid-template-columns: repeat(2, 1fr); }
     .summary-card .value { font-size: 18px; }
   }
 </style>
@@ -238,6 +238,14 @@
     <div class="summary-card">
       <div class="label">总利润（含返现）</div>
       <div class="value val-gain" id="totalProfit">¥0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">买卖差价</div>
+      <div class="value val-gain" id="totalSpread">¥0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">回款金额</div>
+      <div class="value val-gain" id="totalPaid">¥0</div>
     </div>
   </div>
 
@@ -468,6 +476,8 @@ function render() {
   const totalCps = filtered.reduce((s, r) => s + (r.cps || 0), 0);
   const totalProfit = filtered.reduce((s, r) => s + (r.sellPrice - r.buyPrice + (r.cps || 0) - (r.fee || 0)), 0);
   const profitNoCps = totalProfit - totalCps;
+  const totalSpread = totalRevenue - totalCost;
+  const totalPaid = filtered.filter(r => r.paid === true).reduce((s, r) => s + r.buyPrice, 0);
 
   document.getElementById('totalCost').textContent = '¥' + totalCost.toFixed(2);
   document.getElementById('totalRevenue').textContent = '¥' + totalRevenue.toFixed(2);
@@ -481,6 +491,12 @@ function render() {
   const pncEl = document.getElementById('profitNoCps');
   pncEl.textContent = (profitNoCps >= 0 ? '¥' : '-¥') + Math.abs(profitNoCps).toFixed(2);
   pncEl.style.color = profitNoCps < 0 ? 'var(--profit-negative)' : '';
+
+  const spreadEl = document.getElementById('totalSpread');
+  spreadEl.textContent = (totalSpread >= 0 ? '¥' : '-¥') + Math.abs(totalSpread).toFixed(2);
+  spreadEl.style.color = totalSpread < 0 ? 'var(--profit-negative)' : '';
+
+  document.getElementById('totalPaid').textContent = '¥' + totalPaid.toFixed(2);
 
   if (UPDATED_AT) {
     document.getElementById('updateTime').textContent = '更新于 ' + UPDATED_AT;
