@@ -235,6 +235,11 @@
   .tab-panel.active {
     display: block;
   }
+  .marketing-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
   .marketing-table th, .marketing-table td {
     padding: 10px 12px;
     text-align: left;
@@ -355,7 +360,7 @@
       <div class="table-header">
         <h2>营销账单</h2>
       </div>
-      <div class="table-wrapper">
+      <div style="padding: 0 16px 16px;">
         <table class="marketing-table">
           <thead>
             <tr>
@@ -364,9 +369,7 @@
               <th>投放成本</th>
             </tr>
           </thead>
-          <tbody id="marketingBody">
-            <tr><td colspan="3" style="text-align:center;color:var(--text-secondary);padding:40px 20px;">暂无记录</td></tr>
-          </tbody>
+          <tbody id="marketingBody"></tbody>
         </table>
       </div>
     </div>
@@ -624,6 +627,34 @@ function switchTab(tab) {
   document.getElementById('tab-' + tab).classList.add('active');
   event.target.classList.add('active');
 }
+
+const MARKETING_RECORDS = [
+  {"date": "2026-06-16", "content": "咸鱼5.9擦亮", "cost": 5.9},
+  {"date": "2026-06-16", "content": "咸鱼8.9擦亮", "cost": 8.0}
+];
+
+function renderMarketing() {
+  const tbody = document.getElementById('marketingBody');
+  const totalCost = MARKETING_RECORDS.reduce((s, r) => s + r.cost, 0);
+  if (MARKETING_RECORDS.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-secondary);padding:40px 20px;">暂无记录</td></tr>';
+    return;
+  }
+  tbody.innerHTML = MARKETING_RECORDS.map(r => `
+    <tr>
+      <td>${r.date}</td>
+      <td>${r.content}</td>
+      <td>¥${r.cost.toFixed(2)}</td>
+    </tr>
+  `).join('') + `
+    <tr style="font-weight:600;background:var(--bg);">
+      <td colspan="2">合计</td>
+      <td>¥${totalCost.toFixed(2)}</td>
+    </tr>
+  `;
+}
+
+renderMarketing();
 </script>
 </body>
 </html>
