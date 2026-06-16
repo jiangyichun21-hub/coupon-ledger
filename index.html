@@ -563,12 +563,12 @@ function resetFilter() {
 function render() {
   const filtered = getFiltered();
   const active = filtered.filter(r => r.sellPrice > 0);
-  const totalCost = active.reduce((s, r) => s + r.buyPrice, 0);
+  const totalCost = filtered.reduce((s, r) => s + r.buyPrice, 0);
   const totalRevenue = active.reduce((s, r) => s + r.sellPrice, 0);
   const totalFee = active.reduce((s, r) => s + (r.fee || 0), 0);
   const totalCps = active.reduce((s, r) => s + (r.cps || 0), 0);
   const totalProfit = active.reduce((s, r) => s + (r.sellPrice - r.buyPrice + (r.cps || 0) - (r.fee || 0)), 0);
-  const totalSpread = totalRevenue - totalCost;
+  const totalSpread = totalRevenue - active.reduce((s, r) => s + r.buyPrice, 0);
   const totalPaid = active.filter(r => r.paid === true || r.note === '已回款').reduce((s, r) => s + r.buyPrice, 0);
   const frozenAmount = totalCost - totalPaid;
 
