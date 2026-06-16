@@ -217,35 +217,35 @@
   <div class="summary">
     <div class="summary-card">
       <div class="label">买入成本</div>
-      <div class="value val-neutral" id="totalCost">¥0</div>
+      <div class="value" id="totalCost">¥0</div>
     </div>
     <div class="summary-card">
       <div class="label">卖出金额</div>
-      <div class="value val-neutral" id="totalRevenue">¥0</div>
+      <div class="value" id="totalRevenue">¥0</div>
     </div>
     <div class="summary-card">
       <div class="label">买卖价差</div>
-      <div class="value val-gain" id="totalSpread">¥0</div>
+      <div class="value" id="totalSpread">¥0</div>
     </div>
     <div class="summary-card">
       <div class="label">买卖手续费</div>
-      <div class="value val-neutral" id="totalFee">¥0</div>
+      <div class="value" id="totalFee">¥0</div>
     </div>
     <div class="summary-card">
       <div class="label">返现金额</div>
-      <div class="value val-gain" id="totalCps">¥0</div>
+      <div class="value" id="totalCps">¥0</div>
     </div>
     <div class="summary-card">
       <div class="label">总利润</div>
-      <div class="value val-gain" id="totalProfit">¥0</div>
+      <div class="value" id="totalProfit">¥0</div>
     </div>
     <div class="summary-card">
       <div class="label">回款金额</div>
-      <div class="value val-gain" id="totalPaid">¥0</div>
+      <div class="value" id="totalPaid">¥0</div>
     </div>
     <div class="summary-card">
       <div class="label">冻结金额</div>
-      <div class="value val-neutral" id="frozenAmount">¥0</div>
+      <div class="value" id="frozenAmount">¥0</div>
     </div>
   </div>
 
@@ -500,16 +500,10 @@ function render() {
   document.getElementById('totalCost').textContent = '¥' + totalCost.toFixed(2);
   document.getElementById('totalRevenue').textContent = '¥' + totalRevenue.toFixed(2);
 
-  const spreadEl = document.getElementById('totalSpread');
-  spreadEl.textContent = (totalSpread >= 0 ? '¥' : '-¥') + Math.abs(totalSpread).toFixed(2);
-  spreadEl.style.color = totalSpread < 0 ? 'var(--profit-negative)' : '';
-
+  document.getElementById('totalSpread').textContent = (totalSpread >= 0 ? '¥' : '-¥') + Math.abs(totalSpread).toFixed(2);
   document.getElementById('totalFee').textContent = '¥' + totalFee.toFixed(2);
   document.getElementById('totalCps').textContent = '¥' + totalCps.toFixed(2);
-
-  const profitEl = document.getElementById('totalProfit');
-  profitEl.textContent = (totalProfit >= 0 ? '¥' : '-¥') + Math.abs(totalProfit).toFixed(2);
-  profitEl.style.color = totalProfit < 0 ? 'var(--profit-negative)' : '';
+  document.getElementById('totalProfit').textContent = (totalProfit >= 0 ? '¥' : '-¥') + Math.abs(totalProfit).toFixed(2);
 
   document.getElementById('totalPaid').textContent = '¥' + totalPaid.toFixed(2);
   document.getElementById('frozenAmount').textContent = '¥' + frozenAmount.toFixed(2);
