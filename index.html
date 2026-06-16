@@ -562,13 +562,14 @@ function resetFilter() {
 
 function render() {
   const filtered = getFiltered();
-  const totalCost = filtered.reduce((s, r) => s + r.buyPrice, 0);
-  const totalRevenue = filtered.reduce((s, r) => s + r.sellPrice, 0);
-  const totalFee = filtered.reduce((s, r) => s + (r.fee || 0), 0);
-  const totalCps = filtered.reduce((s, r) => s + (r.cps || 0), 0);
-  const totalProfit = filtered.reduce((s, r) => s + (r.sellPrice - r.buyPrice + (r.cps || 0) - (r.fee || 0)), 0);
+  const active = filtered.filter(r => r.sellPrice > 0);
+  const totalCost = active.reduce((s, r) => s + r.buyPrice, 0);
+  const totalRevenue = active.reduce((s, r) => s + r.sellPrice, 0);
+  const totalFee = active.reduce((s, r) => s + (r.fee || 0), 0);
+  const totalCps = active.reduce((s, r) => s + (r.cps || 0), 0);
+  const totalProfit = active.reduce((s, r) => s + (r.sellPrice - r.buyPrice + (r.cps || 0) - (r.fee || 0)), 0);
   const totalSpread = totalRevenue - totalCost;
-  const totalPaid = filtered.filter(r => r.paid === true || r.note === '已回款').reduce((s, r) => s + r.buyPrice, 0);
+  const totalPaid = active.filter(r => r.paid === true || r.note === '已回款').reduce((s, r) => s + r.buyPrice, 0);
   const frozenAmount = totalCost - totalPaid;
 
   document.getElementById('totalCost').textContent = '¥' + totalCost.toFixed(2);
@@ -597,10 +598,12 @@ function render() {
   empty.style.display = 'none';
 
   tbody.innerHTML = filtered.map(r => {
+    const isUnsold = r.sellPrice === 0;
+    const strikeStyle = isUnsold ? 'style="text-decoration:line-through;opacity:0.6;"' : '';
     const profit = r.sellPrice - r.buyPrice + (r.cps || 0) - (r.fee || 0);
     const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
     const profitSign = profit >= 0 ? '+' : '';
-    return `<tr>
+    return `<tr ${strikeStyle}>
       <td>${r.date}</td>
       <td>${r.name}</td>
       <td style="font-size:12px">${r.shipped === true ? '<span style="color:var(--profit-positive)">是</span>' : r.shipped === false ? '<span style="color:var(--profit-negative)">否</span>' : '-'}</td>
