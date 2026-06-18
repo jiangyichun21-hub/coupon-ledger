@@ -600,6 +600,9 @@ function resetFilter() {
     opt.textContent = p;
     sel.appendChild(opt);
   });
+  // Ensure render fires even when re-selecting the same option
+  sel.addEventListener('click', function() { setTimeout(render, 100); });
+  document.getElementById('filterShipped').addEventListener('click', function() { setTimeout(render, 100); });
 })();
 
 function render() {
