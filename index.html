@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>刷券代拍记账本</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --primary: #5b9bd5;
@@ -260,6 +261,86 @@
     .summary { grid-template-columns: repeat(2, 1fr); }
     .summary-card .value { font-size: 18px; }
   }
+
+  .analytics-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .analytics-controls label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .analytics-controls input[type="date"] {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+  }
+  .metric-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .metric-toggle {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .metric-toggle.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .chart-container {
+    background: var(--card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 20px;
+    position: relative;
+    height: 400px;
+  }
+  .period-btns {
+    display: flex;
+    gap: 6px;
+  }
+  .period-btn {
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .period-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  @media (max-width: 700px) {
+    .chart-container { height: 300px; padding: 12px; }
+    .analytics-controls { padding: 12px; gap: 8px; }
+  }
 </style>
 </head>
 <body>
@@ -267,6 +348,7 @@
   <div class="tab-nav">
     <button class="active" onclick="switchTab('ledger')">记账本</button>
     <button onclick="switchTab('marketing')">营销账单</button>
+    <button onclick="switchTab('analytics')">数据分析</button>
   </div>
 
   <div id="tab-ledger" class="tab-panel active">
@@ -375,6 +457,33 @@
           <tbody id="marketingBody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <div id="tab-analytics" class="tab-panel">
+    <div class="analytics-controls">
+      <label>周期</label>
+      <div class="period-btns">
+        <button class="period-btn" data-days="7" onclick="setPeriod(7)">近7天</button>
+        <button class="period-btn active" data-days="14" onclick="setPeriod(14)">近14天</button>
+        <button class="period-btn" data-days="30" onclick="setPeriod(30)">近30天</button>
+        <button class="period-btn" data-days="0" onclick="setPeriod(0)">全部</button>
+      </div>
+      <label>从</label>
+      <input type="date" id="analyticsDateFrom" onchange="renderChart()">
+      <label>到</label>
+      <input type="date" id="analyticsDateTo" onchange="renderChart()">
+      <div class="metric-toggles">
+        <span class="metric-toggle active" data-metric="count" onclick="toggleMetric(this)">下单次数</span>
+        <span class="metric-toggle" data-metric="cost" onclick="toggleMetric(this)">下单成本</span>
+        <span class="metric-toggle" data-metric="revenue" onclick="toggleMetric(this)">下单出价</span>
+        <span class="metric-toggle" data-metric="spread" onclick="toggleMetric(this)">差价</span>
+        <span class="metric-toggle" data-metric="cps" onclick="toggleMetric(this)">返现</span>
+        <span class="metric-toggle" data-metric="profit" onclick="toggleMetric(this)">总利润</span>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="trendChart"></canvas>
     </div>
   </div>
 </div>
@@ -569,7 +678,7 @@ const RECORDS = [
 {"date": "2026-06-19 18:15:08", "name": "可复美胶原棒", "platform": "197淘宝", "buyPrice": 460, "sellPrice": 380, "fee": 2.28, "cps": 100.98, "buyOrderNo": "3308698634936041072", "sellOrderNo": "", "buyer": "木星散打奶酪", "shipped": true, "paid": false, "note": ""},
 {"date": "2026-06-19 21:45:45", "name": "敷尔佳乳糖酸次抛", "platform": "198淘宝", "buyPrice": 62.25, "sellPrice": 65, "fee": 0.39, "cps": 1.1, "buyOrderNo": "3308692983533109254", "sellOrderNo": "", "buyer": "淘气包桃宝宝", "shipped": true, "paid": false, "note": ""},
 {"date": "2026-06-19 21:49:59", "name": "敷尔佳乳糖酸次抛", "platform": "198淘宝", "buyPrice": 56.37, "sellPrice": 65, "fee": 0.39, "cps": 10.23, "buyOrderNo": "3308692983533018053", "sellOrderNo": "", "buyer": "柔柔不长肉肉", "shipped": true, "paid": false, "note": ""},
-{"date": "2026-06-19 21:50:53", "name": "敷尔佳清痘次抛", "platform": "198淘宝", "buyPrice": 57.2, "sellPrice": 65, "fee": 0.39, "cps": 8.39, "buyOrderNo": "3308692983533018053", "sellOrderNo": "", "buyer": "柔柔不长肉肉", "shipped": false, "paid": false, "note": "同单-乳糖酸次抛"},
+{"date": "2026-06-19 21:50:53", "name": "敷尔佳清痘次抛", "platform": "198淘宝", "buyPrice": 57.2, "sellPrice": 65, "fee": 0.39, "cps": 8.39, "buyOrderNo": "3308692983533018053", "sellOrderNo": "", "buyer": "柔柔不长肉肉", "shipped": true, "paid": false, "note": "同单-乳糖酸次抛"},
 {"date": "2026-06-19 22:21:09", "name": "敷尔佳积雪草湿敷棉方胖子", "platform": "198淘宝", "buyPrice": 37.82, "sellPrice": 42, "fee": 0.25, "cps": 4.74, "buyOrderNo": "3308703099041018053", "sellOrderNo": "", "buyer": "鹿鹿子大宝贝", "shipped": true, "paid": false, "note": ""},
 {"date": "2026-06-20 00:17:44", "name": "敷尔佳湿敷棉方胖子蓝色", "platform": "大壮淘宝", "buyPrice": 33.88, "sellPrice": 42, "fee": 0.25, "cps": 4.69, "buyOrderNo": "5120910793543020723", "sellOrderNo": "", "buyer": "收货永动机", "shipped": true, "paid": false, "note": ""},
 {"date": "2026-06-20 00:44:35", "name": "敷尔佳湿敷棉方胖子蓝色", "platform": "大壮淘宝", "buyPrice": 33.75, "sellPrice": 42, "fee": 0.25, "cps": 5.21, "buyOrderNo": "5120911081448020723", "sellOrderNo": "", "buyer": "兔子美人鱼", "shipped": true, "paid": false, "note": ""},
@@ -577,8 +686,8 @@ const RECORDS = [
 {"date": "2026-06-20 01:12:02", "name": "方里粉饼", "platform": "198淘宝", "buyPrice": 39.1, "sellPrice": 45, "fee": 0.27, "cps": 6.25, "buyOrderNo": "3308697915487044881", "sellOrderNo": "", "buyer": "布偶娃娃", "shipped": true, "paid": false, "note": ""},
 {"date": "2026-06-20 01:26:01", "name": "方里粉饼", "platform": "198淘宝", "buyPrice": 39.1, "sellPrice": 42, "fee": 0.25, "cps": 6.25, "buyOrderNo": "3308738954588008871", "sellOrderNo": "", "buyer": "fa与有栖川", "shipped": true, "paid": false, "note": ""},
 {"date": "2026-06-20 10:23:45", "name": "敷尔佳祛痘冰沙霜", "platform": "198淘宝", "buyPrice": 52.88, "sellPrice": 60.0, "fee": 0.36, "cps": 7.37, "buyOrderNo": "3308721099610090073", "sellOrderNo": "", "buyer": "会后空翻的猫", "shipped": false, "paid": false, "note": ""},
-{"date": "2026-06-20 11:14:52", "name": "欧诗漫次抛", "platform": "198淘宝", "buyPrice": 74.27, "sellPrice": 90.0, "fee": 0.54, "cps": 10.0, "buyOrderNo": "3309348468381227283", "sellOrderNo": "", "buyer": "灵魂画手之一", "shipped": false, "paid": false, "note": ""},
-{"date": "2026-06-20 13:54:31", "name": "肌本演绎小绿植", "platform": "198淘宝", "buyPrice": 120.7, "sellPrice": 155.0, "fee": 0.93, "cps": 6.32, "buyOrderNo": "3309205045339018053", "sellOrderNo": "", "buyer": "夏天嘿呦", "shipped": false, "paid": false, "note": ""},
+{"date": "2026-06-20 11:14:52", "name": "欧诗漫次抛", "platform": "198淘宝", "buyPrice": 74.27, "sellPrice": 90.0, "fee": 0.54, "cps": 10.0, "buyOrderNo": "3309348468381227283", "sellOrderNo": "", "buyer": "灵魂画手之一", "shipped": true, "paid": false, "note": ""},
+{"date": "2026-06-20 13:54:31", "name": "肌本演绎小绿植", "platform": "198淘宝", "buyPrice": 120.7, "sellPrice": 155.0, "fee": 0.93, "cps": 6.32, "buyOrderNo": "3309205045339018053", "sellOrderNo": "", "buyer": "夏天嘿呦", "shipped": true, "paid": false, "note": ""},
 {"date": "2026-06-20 14:36:32", "name": "毕生之研水乳", "platform": "198淘宝", "buyPrice": 86.69, "sellPrice": 100.0, "fee": 0.6, "cps": 4.01, "buyOrderNo": "3309230533022008871", "sellOrderNo": "", "buyer": "清朝可靠的苁蓉", "shipped": true, "paid": false, "note": ""},
 {"date": "2026-06-20 14:54:39", "name": "敷尔佳积雪草湿敷棉方胖子", "platform": "198淘宝", "buyPrice": 35.18, "sellPrice": 42.0, "fee": 0.25, "cps": 5.21, "buyOrderNo": "3308765667056008871", "sellOrderNo": "", "buyer": "Aaaa枝绵", "shipped": false, "paid": false, "note": ""},
 {"date": "2026-06-20 15:33:36", "name": "敷尔佳积雪草湿敷棉方胖子", "platform": "198淘宝", "buyPrice": 35.13, "sellPrice": 42.0, "fee": 0.25, "cps": 5.27, "buyOrderNo": "3308784639670008871", "sellOrderNo": "", "buyer": "兔子美人鱼", "shipped": false, "paid": false, "note": ""},
@@ -721,6 +830,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-nav button').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   event.target.classList.add('active');
+  if (tab === 'analytics') renderChart();
 }
 
 const MARKETING_RECORDS = [
@@ -751,6 +861,160 @@ function renderMarketing() {
 }
 
 renderMarketing();
+
+// ========== Analytics Chart ==========
+let trendChart = null;
+
+const METRIC_CONFIG = {
+  count:   { label: '下单次数', color: '#5b9bd5', yAxisID: 'y1', unit: '笔' },
+  cost:    { label: '下单成本', color: '#e74c3c', yAxisID: 'y',  unit: '¥' },
+  revenue: { label: '下单出价', color: '#f39c12', yAxisID: 'y',  unit: '¥' },
+  spread:  { label: '差价',     color: '#2ecc71', yAxisID: 'y',  unit: '¥' },
+  cps:     { label: '返现',     color: '#9b59b6', yAxisID: 'y',  unit: '¥' },
+  profit:  { label: '总利润',   color: '#1abc9c', yAxisID: 'y',  unit: '¥' }
+};
+
+function aggregateByDay(records) {
+  const active = records.filter(r => r.sellPrice > 0 && !r.refunded);
+  const map = {};
+  active.forEach(r => {
+    const day = r.date.substring(0, 10);
+    if (!map[day]) map[day] = { count: 0, cost: 0, revenue: 0, cps: 0, profit: 0 };
+    map[day].count++;
+    map[day].cost += r.buyPrice;
+    map[day].revenue += r.sellPrice;
+    map[day].cps += (r.cps || 0);
+    map[day].profit += (r.sellPrice - r.buyPrice + (r.cps || 0) - (r.fee || 0));
+  });
+  const days = Object.keys(map).sort();
+  days.forEach(d => { map[d].spread = map[d].revenue - map[d].cost; });
+  return { days, map };
+}
+
+function getActiveMetrics() {
+  return Array.from(document.querySelectorAll('.metric-toggle.active')).map(el => el.dataset.metric);
+}
+
+function setPeriod(days) {
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  const df = document.getElementById('analyticsDateFrom');
+  const dt = document.getElementById('analyticsDateTo');
+  if (days === 0) {
+    df.value = '';
+    dt.value = '';
+  } else {
+    const now = new Date();
+    const from = new Date(now);
+    from.setDate(from.getDate() - days + 1);
+    df.value = from.toISOString().substring(0, 10);
+    dt.value = now.toISOString().substring(0, 10);
+  }
+  renderChart();
+}
+
+function toggleMetric(el) {
+  el.classList.toggle('active');
+  renderChart();
+}
+
+function renderChart() {
+  if (!document.getElementById('tab-analytics').classList.contains('active')) return;
+  const df = document.getElementById('analyticsDateFrom').value;
+  const dt = document.getElementById('analyticsDateTo').value;
+  let filtered = RECORDS;
+  if (df) filtered = filtered.filter(r => r.date.substring(0,10) >= df);
+  if (dt) filtered = filtered.filter(r => r.date.substring(0,10) <= dt);
+
+  const { days, map } = aggregateByDay(filtered);
+  const metrics = getActiveMetrics();
+
+  const datasets = metrics.map(key => {
+    const cfg = METRIC_CONFIG[key];
+    return {
+      label: cfg.label,
+      data: days.map(d => {
+        const v = map[d] ? map[d][key] : 0;
+        return key === 'count' ? v : Math.round(v * 100) / 100;
+      }),
+      borderColor: cfg.color,
+      backgroundColor: cfg.color + '20',
+      borderWidth: 2,
+      pointRadius: 4,
+      pointBackgroundColor: cfg.color,
+      pointHoverRadius: 6,
+      tension: 0.3,
+      fill: false,
+      yAxisID: cfg.yAxisID
+    };
+  });
+
+  const labels = days.map(d => d.substring(5));
+  const hasCount = metrics.includes('count');
+  const hasMoney = metrics.some(m => m !== 'count');
+
+  const config = {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 12 } } },
+        tooltip: {
+          backgroundColor: 'rgba(44,62,80,0.92)',
+          titleFont: { size: 13 },
+          bodyFont: { size: 12 },
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(ctx) {
+              const m = metrics[ctx.datasetIndex];
+              const cfg = METRIC_CONFIG[m];
+              const v = ctx.parsed.y;
+              return cfg.label + ': ' + (cfg.unit === '¥' ? '¥' + v.toFixed(2) : v + '笔');
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#7f8c9b' }
+        },
+        y: {
+          type: 'linear',
+          display: hasMoney,
+          position: 'left',
+          grid: { color: '#f0f0f0' },
+          ticks: { font: { size: 11 }, color: '#7f8c9b', callback: v => '¥' + v }
+        },
+        y1: {
+          type: 'linear',
+          display: hasCount,
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { font: { size: 11 }, color: '#7f8c9b', stepSize: 1 }
+        }
+      }
+    }
+  };
+
+  if (trendChart) {
+    trendChart.destroy();
+  }
+  trendChart = new Chart(document.getElementById('trendChart'), config);
+}
+
+// Init analytics with default 14-day period
+(function initAnalytics() {
+  const now = new Date();
+  const from = new Date(now);
+  from.setDate(from.getDate() - 13);
+  document.getElementById('analyticsDateFrom').value = from.toISOString().substring(0, 10);
+  document.getElementById('analyticsDateTo').value = now.toISOString().substring(0, 10);
+})();
 </script>
 </body>
 </html>
