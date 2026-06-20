@@ -649,6 +649,7 @@ function resetFilter() {
 
 function render() {
   const filtered = getFiltered();
+  filtered.sort((a, b) => b.date.localeCompare(a.date));
   const active = filtered.filter(r => r.sellPrice > 0 && !r.refunded);
   const totalCost = active.reduce((s, r) => s + r.buyPrice, 0);
   const totalRevenue = active.reduce((s, r) => s + r.sellPrice, 0);
