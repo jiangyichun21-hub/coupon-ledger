@@ -154,29 +154,20 @@
   }
   tbody tr:last-child td { border-bottom: none; }
 
-  /* Sticky columns: time (1st) and product name (2nd) */
-  thead th:nth-child(1), thead th:nth-child(2),
-  tbody td:nth-child(1), tbody td:nth-child(2) {
+  /* Sticky first column: product name */
+  thead th:nth-child(1),
+  tbody td:nth-child(1) {
     position: sticky;
-    z-index: 1;
-  }
-  thead th:nth-child(1), tbody td:nth-child(1) {
     left: 0;
-    width: 170px;
-    min-width: 170px;
-    background: var(--card);
-    box-shadow: 2px 0 4px rgba(0,0,0,0.06);
-  }
-  thead th:nth-child(2), tbody td:nth-child(2) {
-    left: 170px;
+    z-index: 1;
     min-width: 160px;
-    max-width: 200px;
+    max-width: 220px;
     white-space: normal;
     word-break: break-all;
     background: var(--card);
     box-shadow: 2px 0 4px rgba(0,0,0,0.06);
   }
-  thead th:nth-child(1), thead th:nth-child(2) {
+  thead th:nth-child(1) {
     background: var(--bg);
     z-index: 4;
   }
@@ -417,12 +408,12 @@
       <table>
         <thead>
           <tr>
-            <th>时间</th>
             <th>商品</th>
             <th>已发货</th>
             <th>回款</th>
             <th>闲鱼购买者</th>
             <th>平台</th>
+            <th>时间</th>
             <th>买入价</th>
             <th>卖出价</th>
             <th>手续费</th>
@@ -697,7 +688,8 @@ const RECORDS = [
 {"date": "2026-06-20 21:05:19", "name": "敷尔佳湿敷棉方胖子蓝色", "platform": "大壮淘宝", "buyPrice": 35.18, "sellPrice": 42.0, "fee": 0.25, "cps": 7.82, "buyOrderNo": "5120974729376011541", "sellOrderNo": "", "buyer": "收货永动机", "shipped": false, "paid": false, "note": ""},
 {"date": "2026-06-20 22:51:21", "name": "敷尔佳三文鱼面膜4盒", "platform": "大壮淘宝", "buyPrice": 129.6, "sellPrice": 160.0, "fee": 0.96, "cps": 19.32, "buyOrderNo": "5120677082157011541", "sellOrderNo": "", "buyer": "鹿鹿子大宝贝", "shipped": false, "paid": false, "note": ""},
 {"date": "2026-06-20 23:05:08", "name": "敷尔佳三文鱼面膜4盒", "platform": "大壮淘宝", "buyPrice": 129.6, "sellPrice": 160.0, "fee": 0.96, "cps": 19.32, "buyOrderNo": "5120672438784011541", "sellOrderNo": "", "buyer": "鹿鹿子大宝贝", "shipped": false, "paid": false, "note": ""},
-{"date": "2026-06-20 23:27:52", "name": "敷尔佳三文鱼面膜4盒", "platform": "198淘宝", "buyPrice": 132.8, "sellPrice": 160.0, "fee": 0.96, "cps": 17.64, "buyOrderNo": "3308818623673018053", "sellOrderNo": "", "buyer": "鹿鹿子大宝贝", "shipped": false, "paid": false, "note": ""}
+{"date": "2026-06-20 23:27:52", "name": "敷尔佳三文鱼面膜4盒", "platform": "198淘宝", "buyPrice": 132.8, "sellPrice": 160.0, "fee": 0.96, "cps": 17.64, "buyOrderNo": "3308818623673018053", "sellOrderNo": "", "buyer": "鹿鹿子大宝贝", "shipped": false, "paid": false, "note": ""},
+{"date": "2026-06-20 23:55:00", "name": "敷尔佳三文鱼面膜4盒", "platform": "137淘宝", "buyPrice": 133.11, "sellPrice": 160.0, "fee": 0.96, "cps": 17.38, "buyOrderNo": "3308824419136090876", "sellOrderNo": "", "buyer": "鹿鹿子大宝贝", "shipped": false, "paid": false, "note": "三单合并"}
 ];
 const UPDATED_AT = "2026-06-12 22:16";
 // ========== DATA_END ==========
@@ -805,12 +797,12 @@ function render() {
     const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
     const profitSign = profit >= 0 ? '+' : '';
     return `<tr ${strikeStyle}>
-      <td>${r.date}</td>
       <td>${r.name}</td>
       <td style="font-size:12px">${r.shipped === true ? '<span style="color:var(--profit-positive)">是</span>' : '-'}</td>
       <td style="font-size:12px">${r.paid === true || r.note === '已回款' ? '<span style="color:var(--profit-positive)">是</span>' : '-'}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.buyer || '-'}</td>
       <td><span class="platform-tag ${getPlatformClass(r.platform)}">${r.platform}</span></td>
+      <td>${r.date}</td>
       <td>¥${r.buyPrice.toFixed(2)}</td>
       <td>¥${r.sellPrice.toFixed(2)}</td>
       <td>¥${(r.fee || 0).toFixed(2)}</td>
