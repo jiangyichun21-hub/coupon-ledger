@@ -455,8 +455,8 @@
     <div class="analytics-controls">
       <label>周期</label>
       <div class="period-btns">
-        <button class="period-btn" data-days="7" onclick="setPeriod(7)">近7天</button>
-        <button class="period-btn active" data-days="14" onclick="setPeriod(14)">近14天</button>
+        <button class="period-btn active" data-days="7" onclick="setPeriod(7)">近7天</button>
+        <button class="period-btn" data-days="14" onclick="setPeriod(14)">近14天</button>
         <button class="period-btn" data-days="30" onclick="setPeriod(30)">近30天</button>
         <button class="period-btn" data-days="0" onclick="setPeriod(0)">全部</button>
       </div>
@@ -465,12 +465,12 @@
       <label>到</label>
       <input type="date" id="analyticsDateTo" onchange="renderChart()">
       <div class="metric-toggles">
-        <span class="metric-toggle active" data-metric="count" onclick="toggleMetric(this)">下单次数</span>
+        <span class="metric-toggle" data-metric="count" onclick="toggleMetric(this)">下单次数</span>
         <span class="metric-toggle" data-metric="cost" onclick="toggleMetric(this)">下单成本</span>
         <span class="metric-toggle" data-metric="revenue" onclick="toggleMetric(this)">下单出价</span>
         <span class="metric-toggle" data-metric="spread" onclick="toggleMetric(this)">差价</span>
         <span class="metric-toggle" data-metric="cps" onclick="toggleMetric(this)">返现</span>
-        <span class="metric-toggle" data-metric="profit" onclick="toggleMetric(this)">总利润</span>
+        <span class="metric-toggle active" data-metric="profit" onclick="toggleMetric(this)">总利润</span>
       </div>
     </div>
     <div class="chart-container">
@@ -1022,7 +1022,7 @@ function renderChart() {
 (function initAnalytics() {
   const now = new Date();
   const from = new Date(now);
-  from.setDate(from.getDate() - 13);
+  from.setDate(from.getDate() - 6);
   document.getElementById('analyticsDateFrom').value = from.toISOString().substring(0, 10);
   document.getElementById('analyticsDateTo').value = now.toISOString().substring(0, 10);
 })();
