@@ -388,6 +388,12 @@
       <option value="yes">已发货</option>
       <option value="no">未发货</option>
     </select>
+    <label>回款</label>
+    <select id="filterPaid" onchange="render()">
+      <option value="">全部</option>
+      <option value="yes">已回款</option>
+      <option value="no">未回款</option>
+    </select>
     <label>平台</label>
     <select id="filterPlatform" onchange="render()">
       <option value="">全部</option>
@@ -734,6 +740,7 @@ function getFiltered() {
   const buyerKw = document.getElementById('filterBuyer').value.trim().toLowerCase();
   const orderNo = document.getElementById('filterOrderNo').value.trim();
   const shipped = document.getElementById('filterShipped').value;
+  const paid = document.getElementById('filterPaid').value;
   const pf = document.getElementById('filterPlatform').value;
   const df = document.getElementById('filterDateFrom').value;
   const dt = document.getElementById('filterDateTo').value;
@@ -743,6 +750,8 @@ function getFiltered() {
     if (orderNo && r.buyOrderNo !== orderNo && r.sellOrderNo !== orderNo) return false;
     if (shipped === 'yes' && r.shipped !== true) return false;
     if (shipped === 'no' && r.shipped !== false) return false;
+    if (paid === 'yes' && r.paid !== true) return false;
+    if (paid === 'no' && r.paid !== false) return false;
     if (pf && r.platform !== pf) return false;
     if (df && r.date.substring(0,10) < df) return false;
     if (dt && r.date.substring(0,10) > dt) return false;
@@ -755,6 +764,7 @@ function resetFilter() {
   document.getElementById('filterBuyer').value = '';
   document.getElementById('filterOrderNo').value = '';
   document.getElementById('filterShipped').value = '';
+  document.getElementById('filterPaid').value = '';
   document.getElementById('filterPlatform').value = '';
   document.getElementById('filterDateFrom').value = '';
   document.getElementById('filterDateTo').value = '';
@@ -774,6 +784,7 @@ function resetFilter() {
   // Ensure render fires even when re-selecting the same option
   sel.addEventListener('click', function() { setTimeout(render, 100); });
   document.getElementById('filterShipped').addEventListener('click', function() { setTimeout(render, 100); });
+  document.getElementById('filterPaid').addEventListener('click', function() { setTimeout(render, 100); });
 })();
 
 function render() {
