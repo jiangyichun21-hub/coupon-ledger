@@ -332,6 +332,48 @@
     .chart-container { height: 300px; padding: 12px; }
     .analytics-controls { padding: 12px; gap: 8px; }
   }
+  .ms-wrap { position: relative; display: inline-block; }
+  .ms-btn {
+    padding: 6px 30px 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    min-width: 120px;
+    text-align: left;
+    position: relative;
+  }
+  .ms-caret { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--text-secondary); }
+  .ms-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    min-width: 160px;
+    max-height: 320px;
+    overflow-y: auto;
+    z-index: 100;
+    padding: 6px 0;
+    display: none;
+  }
+  .ms-dropdown.open { display: block; }
+  .ms-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .ms-item:hover { background: var(--primary-light); }
+  .ms-item input { margin: 0; cursor: pointer; }
+  .ms-divider { height: 1px; background: var(--border); margin: 4px 0; }
 </style>
 </head>
 <body>
@@ -396,9 +438,17 @@
     </select>
     <div style="width:100%"></div>
     <label>平台</label>
-    <select id="filterPlatform" onchange="render()">
-      <option value="">全部</option>
-    </select>
+    <div class="ms-wrap" id="filterPlatformWrap">
+      <button type="button" class="ms-btn" id="filterPlatformBtn" onclick="togglePlatformDropdown(event)">
+        <span id="filterPlatformLabel">全部</span>
+        <span class="ms-caret">▾</span>
+      </button>
+      <div class="ms-dropdown" id="filterPlatformDropdown">
+        <label class="ms-item"><input type="checkbox" id="pfAllCheck" onclick="togglePlatformAll(event)"> <span>全部</span></label>
+        <div class="ms-divider"></div>
+        <div id="pfOptions"></div>
+      </div>
+    </div>
     <label>日期从</label>
     <input type="date" id="filterDateFrom" onchange="render()">
     <label>到</label>
@@ -5494,7 +5544,7 @@ function getFiltered() {
   const orderNo = document.getElementById('filterOrderNo').value.trim();
   const shipped = document.getElementById('filterShipped').value;
   const paid = document.getElementById('filterPaid').value;
-  const pf = document.getElementById('filterPlatform').value;
+  const pf = getSelectedPlatforms();
   const df = document.getElementById('filterDateFrom').value;
   const dt = document.getElementById('filterDateTo').value;
   return RECORDS.filter(r => {
@@ -5505,7 +5555,7 @@ function getFiltered() {
     if (shipped === 'no' && r.shipped !== false) return false;
     if (paid === 'yes' && r.paid !== true) return false;
     if (paid === 'no' && r.paid !== false) return false;
-    if (pf && r.platform !== pf) return false;
+    if (pf.length > 0 && !pf.includes(r.platform)) return false;
     if (df && r.date.substring(0,10) < df) return false;
     if (dt && r.date.substring(0,10) > dt) return false;
     return true;
@@ -5518,26 +5568,72 @@ function resetFilter() {
   document.getElementById('filterOrderNo').value = '';
   document.getElementById('filterShipped').value = '';
   document.getElementById('filterPaid').value = '';
-  document.getElementById('filterPlatform').value = '';
+  clearPlatformSelection();
   document.getElementById('filterDateFrom').value = '';
   document.getElementById('filterDateTo').value = '';
   render();
 }
 
-// Populate platform filter options
+// Multi-select platform filter
+function getSelectedPlatforms() {
+  return Array.from(document.querySelectorAll('#pfOptions input[type=checkbox]:checked')).map(c => c.value);
+}
+function updatePlatformLabel() {
+  const sel = getSelectedPlatforms();
+  const all = document.querySelectorAll('#pfOptions input[type=checkbox]').length;
+  const label = document.getElementById('filterPlatformLabel');
+  const allCheck = document.getElementById('pfAllCheck');
+  if (sel.length === 0 || sel.length === all) {
+    label.textContent = '全部';
+    allCheck.checked = true;
+  } else if (sel.length === 1) {
+    label.textContent = sel[0];
+    allCheck.checked = false;
+  } else {
+    label.textContent = `已选 ${sel.length} 项`;
+    allCheck.checked = false;
+  }
+}
+function togglePlatformDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('filterPlatformDropdown').classList.toggle('open');
+}
+function togglePlatformAll(e) {
+  const checked = e.target.checked;
+  document.querySelectorAll('#pfOptions input[type=checkbox]').forEach(c => c.checked = checked);
+  updatePlatformLabel();
+  render();
+}
+function clearPlatformSelection() {
+  document.querySelectorAll('#pfOptions input[type=checkbox]').forEach(c => c.checked = false);
+  document.getElementById('pfAllCheck').checked = true;
+  updatePlatformLabel();
+}
 (function() {
   const platforms = [...new Set(RECORDS.map(r => r.platform))].sort();
-  const sel = document.getElementById('filterPlatform');
+  const container = document.getElementById('pfOptions');
   platforms.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p;
-    opt.textContent = p;
-    sel.appendChild(opt);
+    const label = document.createElement('label');
+    label.className = 'ms-item';
+    label.innerHTML = `<input type="checkbox" value="${p.replace(/"/g,'&quot;')}"> <span>${p}</span>`;
+    container.appendChild(label);
   });
-  // Ensure render fires even when re-selecting the same option
-  sel.addEventListener('click', function() { setTimeout(render, 100); });
+  document.getElementById('pfAllCheck').checked = true;
+  container.addEventListener('change', function(e) {
+    if (e.target.matches('input[type=checkbox]')) {
+      updatePlatformLabel();
+      render();
+    }
+  });
+  document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('filterPlatformWrap');
+    if (!wrap.contains(e.target)) {
+      document.getElementById('filterPlatformDropdown').classList.remove('open');
+    }
+  });
   document.getElementById('filterShipped').addEventListener('click', function() { setTimeout(render, 100); });
   document.getElementById('filterPaid').addEventListener('click', function() { setTimeout(render, 100); });
+  updatePlatformLabel();
 })();
 
 function render() {
