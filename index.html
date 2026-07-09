@@ -380,7 +380,7 @@
 <div class="container">
   <div class="tab-nav">
     <button class="active" onclick="switchTab('ledger')">记账本</button>
-    <button onclick="switchTab('marketing')">营销账单</button>
+    <button onclick="switchTab('marketing')">账单</button>
     <button onclick="switchTab('analytics')">数据分析</button>
   </div>
 
@@ -503,6 +503,22 @@
             </tr>
           </thead>
           <tbody id="marketingBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="table-card" style="margin-top: 16px;">
+      <div class="table-header">
+        <h2>大壮还款账单</h2>
+      </div>
+      <div style="padding: 0 16px 16px;">
+        <table class="marketing-table">
+          <thead>
+            <tr>
+              <th>费用</th>
+              <th>金额</th>
+            </tr>
+          </thead>
+          <tbody id="dazhuangBody"></tbody>
         </table>
       </div>
     </div>
@@ -6028,6 +6044,46 @@ function renderMarketing() {
 }
 
 renderMarketing();
+
+// ========== 大壮还款账单 ==========
+// 编辑还款记录：{"date": "YYYY-MM-DD", "content": "还款说明", "amount": 100.00}
+const DAZHUANG_REPAYMENTS = [
+];
+
+function renderDazhuang() {
+  const tbody = document.getElementById('dazhuangBody');
+  if (!tbody) return;
+  const totalCost = RECORDS
+    .filter(r => (r.platform === '大壮淘宝' || r.platform === '137抖音') && !r.refunded)
+    .reduce((s, r) => s + (r.buyPrice || 0), 0);
+  const paidTotal = DAZHUANG_REPAYMENTS.reduce((s, r) => s + (r.amount || 0), 0);
+  const remaining = totalCost - paidTotal;
+
+  const rows = [];
+  rows.push(`
+    <tr style="background:var(--bg);">
+      <td>大壮成本总金额（大壮淘宝+137抖音 买入合计）</td>
+      <td>¥${totalCost.toFixed(2)}</td>
+    </tr>
+  `);
+  DAZHUANG_REPAYMENTS.forEach(r => {
+    rows.push(`
+      <tr>
+        <td>${r.date} · ${r.content || '还款'}</td>
+        <td style="color:#2ecc71">-¥${(r.amount || 0).toFixed(2)}</td>
+      </tr>
+    `);
+  });
+  rows.push(`
+    <tr style="font-weight:600;background:var(--bg);">
+      <td>剩余还款</td>
+      <td style="color:${remaining > 0 ? '#e74c3c' : '#2ecc71'}">¥${remaining.toFixed(2)}</td>
+    </tr>
+  `);
+  tbody.innerHTML = rows.join('');
+}
+
+renderDazhuang();
 
 // ========== Analytics Chart ==========
 let trendChart = null;
