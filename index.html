@@ -470,13 +470,13 @@
             <th>回款</th>
             <th>闲鱼购买者</th>
             <th>平台</th>
-            <th>时间</th>
+            <th>购买订单号</th>
             <th>买入价</th>
             <th>卖出价</th>
             <th>手续费</th>
             <th>CPS返现</th>
             <th>净利润</th>
-            <th>购买订单号</th>
+            <th>时间</th>
             <th>闲鱼订单号</th>
             <th>备注</th>
           </tr>
@@ -1093,13 +1093,13 @@ function render() {
       <td style="font-size:12px">${r.paid === true || r.note === '已回款' ? '<span style="color:var(--profit-positive)">是</span>' : '-'}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.buyer || '-'}</td>
       <td><span class="platform-tag ${getPlatformClass(r.platform)}">${r.platform}</span></td>
-      <td>${r.date}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${r.buyOrderNo || '-'}</td>
       <td>¥${r.buyPrice.toFixed(2)}</td>
       <td>¥${r.sellPrice.toFixed(2)}</td>
       <td>¥${(r.fee || 0).toFixed(2)}</td>
       <td>¥${(r.cps || 0).toFixed(2)}</td>
       <td class="profit-cell ${profitClass}">${profitSign}¥${Math.abs(profit).toFixed(2)}</td>
-      <td style="font-size:11px;color:var(--text-secondary)">${r.buyOrderNo || '-'}</td>
+      <td>${r.date}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.sellOrderNo || '-'}</td>
       <td style="font-size:11px;color:var(--text-secondary)">${r.note || '-'}</td>
     </tr>`;
