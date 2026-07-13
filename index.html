@@ -1272,6 +1272,31 @@ function renderChart() {
     };
   });
 
+  // When only one metric is selected, add an average dashed line
+  let avgValue = null;
+  if (metrics.length === 1 && days.length > 0) {
+    const key = metrics[0];
+    const cfg = METRIC_CONFIG[key];
+    const values = days.map(d => map[d] ? map[d][key] : 0);
+    const sum = values.reduce((a, b) => a + b, 0);
+    avgValue = sum / values.length;
+    const avgRounded = key === 'count' ? Math.round(avgValue * 100) / 100 : Math.round(avgValue * 100) / 100;
+    const avgLabel = '平均值: ' + (cfg.unit === '¥' ? '¥' + avgRounded.toFixed(2) : avgRounded.toFixed(2) + '笔');
+    datasets.push({
+      label: avgLabel,
+      data: days.map(() => avgRounded),
+      borderColor: cfg.color,
+      borderWidth: 1.5,
+      borderDash: [6, 4],
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      fill: false,
+      tension: 0,
+      yAxisID: cfg.yAxisID,
+      _isAverage: true
+    });
+  }
+
   const labels = days.map(d => d.substring(5));
   const hasCount = metrics.includes('count');
   const hasMoney = metrics.some(m => m !== 'count');
@@ -1293,6 +1318,9 @@ function renderChart() {
           cornerRadius: 8,
           callbacks: {
             label: function(ctx) {
+              if (ctx.dataset._isAverage) {
+                return ctx.dataset.label;
+              }
               const m = metrics[ctx.datasetIndex];
               const cfg = METRIC_CONFIG[m];
               const v = ctx.parsed.y;
